@@ -72,7 +72,7 @@ function viewDepartments() { //async?
     // console.log(db)
     db.promise().query(query)
         .then((results) => {
-            // console.log(results)
+            console.log(results[0])
             console.table(results[0])
         })
         .catch('error egtting the rows')
@@ -99,14 +99,14 @@ function viewRoles() {
 function viewEmployees() {
     console.log('viewing employees')
     const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name, roles.salary 
-        FROM ((employees 
-            INNER JOIN roles ON employees.role_id = roles.id)
-            INNER JOIN departments ON roles.department_id = departments.id)`
+        FROM employees 
+            INNER JOIN roles ON employees.role_id = roles.id
+            INNER JOIN departments ON roles.department_id = departments.id`
     db.promise().query(query)
         .then((results) => {
             console.table(results[0])
         })
-        .catch(console.log('error getting the rows'))
+        .catch('error getting the rows')
         .then(() => {
             menu();
         })
@@ -134,12 +134,55 @@ function addDepartment(departmentName) {
             })
         })
         .catch((err) => console.log(err))
-        
 }
 
 function addRole() {
-    console.log('adding role')
-    menu()
+    let roles = []
+    const query = 'SELECT name FROM departments';
+    db.promise().query(query)
+        .then((results) => {
+            results[0].forEach((dept) => roles.push(dept.name))
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        name: 'rolename',
+                        message: "What role would you like to add?"
+                    },
+                    {
+                        type: 'number',
+                        name: 'salary',
+                        message: "What is the starting salary for this role?"
+                    },
+                    {
+                        type: 'list',
+                        name: 'department',
+                        message: "Which department does the role belong to?",
+                        choices: roles // <-------left off here
+                    }
+                ])
+                .then((answer) => {
+                    const department_id = roles.indexOf(answer.department) + 1;
+                    const { rolename, salary } = answer;
+                    const query = `INSERT INTO roles (title, salary, department_id) 
+                        VALUES ('${rolename}', ${salary}, ${department_id})`;
+                    db.promise().query(query)
+                        .then((results) => {
+                        console.log('successfully added role')
+                    })
+                    .catch((err) => console.log(err))
+                    .then(() => {
+                        menu();
+                    })
+                })
+            }
+        )
+        // .catch((err) => console.log(err))
+        // })
+        // .catch('error getting the rows')
+        // .then(() => {
+        //     menu();
+        // })
 }
 
 function addEmployee() {
