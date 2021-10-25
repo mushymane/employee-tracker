@@ -83,12 +83,32 @@ function viewDepartments() { //async?
 
 function viewRoles() {
     console.log('viewing roles')
-    menu()
+    const query = 'SELECT * FROM roles';
+    db.promise().query(query)
+        .then((results) => {
+            console.table(results[0])
+        })
+        .catch('error getting the rows')
+        .then(() => {
+            menu();
+        })
 }
 
+// *******need to figure out manager thing
 function viewEmployees() {
     console.log('viewing employees')
-    menu()
+    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name, roles.salary 
+        FROM ((employees 
+            INNER JOIN roles ON employees.role_id = roles.id)
+            INNER JOIN departments ON roles.department_id = departments.id)`
+    db.promise().query(query)
+        .then((results) => {
+            console.table(results[0])
+        })
+        .catch('error getting the rows')
+        .then(() => {
+            menu();
+        })
 }
 
 function addDepartment() {
