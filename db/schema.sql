@@ -10,18 +10,18 @@ CREATE TABLE departments (
 
 CREATE TABLE roles (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(30),
+    title VARCHAR(30) NOT NULL,
     salary DECIMAL NOT NULL,
-    department_id INT 
+    department_id INT,
     FOREIGN KEY (department_id)
-    REFERENCES departments(id)
+    REFERENCES departments(id) 
     ON DELETE SET NULL
 );
 
 CREATE TABLE employees (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(30),
-    last_name VARCHAR(30),
+    first_name VARCHAR(30) NOT NULL,
+    last_name VARCHAR(30) NOT NULL,
     role_id INT NOT NULL,
     manager_id INT,
     FOREIGN KEY (manager_id)
