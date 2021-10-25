@@ -81,6 +81,7 @@ function viewDepartments() { //async?
         })
 }
 
+// change department_id to actual department name
 function viewRoles() {
     console.log('viewing roles')
     const query = 'SELECT * FROM roles';
@@ -105,15 +106,35 @@ function viewEmployees() {
         .then((results) => {
             console.table(results[0])
         })
-        .catch('error getting the rows')
+        .catch(console.log('error getting the rows'))
         .then(() => {
             menu();
         })
 }
 
-function addDepartment() {
-    console.log('adding dept')
-    menu()
+function addDepartment(departmentName) {
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'departmentname',
+                message: "What department would you like to add?"
+            }
+        ])
+        .then((answer) => {
+            const departmentName = answer.departmentname;
+            const query = `INSERT INTO departments (name) VALUES ('${departmentName}')`;
+            db.promise().query(query)
+                .then((results) => {
+                console.log('successfully added department')
+            })
+            .catch(console.log('error adding new department'))
+            .then(() => {
+                menu();
+            })
+        })
+        .catch((err) => console.log(err))
+        
 }
 
 function addRole() {
