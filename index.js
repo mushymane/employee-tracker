@@ -1,5 +1,18 @@
 const inquirer = require('inquirer');
+const mysql = require('mysql2');
 const cTable = require('console.table');
+// const util = require('util');
+
+// Connect to database
+const db = mysql.createConnection(
+    {
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'employees_db'
+    },
+    console.log(`Connected to the employees database.`)
+);
 
 function menu() {
     inquirer
@@ -8,12 +21,12 @@ function menu() {
             name: 'menu',
             message: "What would you like to do?",
             choices: [
-                'View all departments', 
-                'View all roles', 
-                'View all employees', 
-                'Add a department', 
-                'Add a role', 
-                'Add an employee', 
+                'View all departments',
+                'View all roles',
+                'View all employees',
+                'Add a department',
+                'Add a role',
+                'Add an employee',
                 'Update an employee role',
                 'I am done here'
             ]
@@ -50,9 +63,22 @@ function menu() {
         .catch((err) => console.log(err))
 }
 
-function viewDepartments() {
+function viewDepartments() { //async?
     console.log('viewing deoartments')
-    menu()
+    const query = 'SELECT * FROM departments'
+    // let [data, fields] = await db.query(query)
+    //     // console.table(results);
+    //     console.table(data);
+    // console.log(db)
+    db.promise().query(query)
+        .then((results) => {
+            // console.log(results)
+            console.table(results[0])
+        })
+        .catch('error egtting the rows')
+        .then(() => {
+            menu()
+        })
 }
 
 function viewRoles() {
