@@ -3,6 +3,8 @@ const mysql = require('mysql2');
 const cTable = require('console.table');
 // const util = require('util');
 
+// let managers = []
+
 // Connect to database
 const db = mysql.createConnection(
     {
@@ -98,10 +100,12 @@ function viewRoles() {
 // *******need to figure out manager thing
 function viewEmployees() {
     console.log('viewing employees')
-    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name, roles.salary 
+    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name, roles.salary, 
+        concat(m.first_name, ' ', m.last_name) as Manager  
         FROM employees 
             INNER JOIN roles ON employees.role_id = roles.id
-            INNER JOIN departments ON roles.department_id = departments.id`
+            INNER JOIN departments ON roles.department_id = departments.id 
+            LEFT JOIN employees m ON m.id = employees.manager_id`
     db.promise().query(query)
         .then((results) => {
             console.table(results[0])
@@ -137,11 +141,11 @@ function addDepartment(departmentName) {
 }
 
 function addRole() {
-    let roles = []
+    let departments = []
     const query = 'SELECT name FROM departments';
     db.promise().query(query)
         .then((results) => {
-            results[0].forEach((dept) => roles.push(dept.name))
+            results[0].forEach((dept) => departments.push(dept.name))
             inquirer
                 .prompt([
                     {
@@ -158,12 +162,12 @@ function addRole() {
                         type: 'list',
                         name: 'department',
                         message: "Which department does the role belong to?",
-                        choices: roles // <-------left off here
+                        choices: departments
                     }
                 ])
                 .then((answer) => {
-                    const department_id = roles.indexOf(answer.department) + 1;
                     const { rolename, salary } = answer;
+                    const department_id = departments.indexOf(answer.department) + 1;
                     const query = `INSERT INTO roles (title, salary, department_id) 
                         VALUES ('${rolename}', ${salary}, ${department_id})`;
                     db.promise().query(query)
@@ -186,13 +190,122 @@ function addRole() {
 }
 
 function addEmployee() {
-    console.log('adding employee')
-    menu()
+    let roles = []
+    let managers = ['None']
+    // getManagers()
+    // console.log(managers)
+    // const query = 'SELECT title FROM roles';
+    // db.promise().query(query)
+    //     .then((results) => {
+    //         results[0].forEach((role) => roles.push(role.title));
+    //     })
+    const query = `select roles.title, concat(employees.first_name, ' ', employees.last_name) as Managers
+        from employees right join roles on employees.role_id = roles.id 
+        where employees.manager_id is null`;
+    db.promise().query(query)
+        .then((results) => {
+            // console.log(results[0])
+            results[0].forEach((role) => {
+                if (role.title !== null) {
+                    roles.push(role.title);
+                }
+                if (role.Managers !== null) {
+                    managers.push(role.Managers);
+                }
+            })
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        name: 'firstname',
+                        message: "What is the employee's first name?"
+                    },
+                    {
+                        type: 'input',
+                        name: 'lastname',
+                        message: "What is the employee's last name?"
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: "What is the employee's role?",
+                        choices: roles
+                    },
+                    {
+                        type: 'list',
+                        name: 'manager',
+                        message: "Who is the employee's manager?",
+                        choices: managers
+                    }
+                ])
+                .then((answer) => {
+                    const { firstname, lastname } = answer;
+                    const roleId = roles.indexOf(answer.role) + 1;
+                    let managerId;
+                    if (answer.manager === 'None') {
+                        managerId = null;
+                    } else {
+                        managerId = managers.indexOf(answer.manager) + 2
+                    }
+                    const query = `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
+                        VALUES ('${firstname}', '${lastname}', ${roleId}, ${managerId})`;
+                    db.promise().query(query)
+                        .then((results) => {
+                        console.log('successfully added role')
+                    })
+                    .catch((err) => console.log(err))
+                    .then(() => {
+                        menu();
+                    })
+                })
+            })
+            // console.log(roles)
+            // console.log(managers)
+    
 }
+
+// inquirer
+//     .prompt([
+//         {
+//             type: 'input',
+//             name: 'firstname',
+//             message: "What is the employee's first name?"
+//         },
+//         {
+//             type: 'input',
+//             name: 'lastname',
+//             message: "What is the employee's last name?"
+//         },
+//         {
+//             type: 'list',
+//             name: 'role',
+//             message: "What is the employee's role?",
+//             choices: roles
+//         },
+//         {
+//             type: 'list',
+//             name: 'manager',
+//             message: "Who is the employee's manager?",
+//             choices: ['None',]
+//         }
+//     ])
 
 function updateEmployee() {
     console.log('updating employees')
     menu()
+}
+
+function getManagers() {
+    let managers = ['None']
+    const query = `SELECT CONCAT(employees.first_name, ' ', employees.last_name) AS Manager 
+        FROM employees WHERE manager_id IS NULL`;
+    db.promise().query(query)
+    .then((results) => {
+        results[0].forEach((manager) => managers.push(manager.Manager));
+        console.log(managers)
+        return managers;
+    })
+    .catch((err) => console.log(err, 'unable to retireve manager list'))
 }
 
 function init() {

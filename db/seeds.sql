@@ -18,10 +18,10 @@ INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES
     ('Jon', 'Snow', 3, null),
     ('Arya', 'Stark', 4, 1),
     ('Robb', 'Stark', 4, 1),
-    ('Jaime', 'Lannister', 6, 3),
-    ('Cersei', 'Lannister', 1, null),
     ('Tyrion', 'Lannister', 5, null), 
-    ('Petyr', 'Baelish', 2, 2), 
+    ('Jaime', 'Lannister', 6, 4),
+    ('Cersei', 'Lannister', 1, null),
+    ('Petyr', 'Baelish', 2, 6), 
     ('Daenerys', 'Targaryen', 7, null), 
-    ('Jorah', 'Mormont', 8, 4), 
-    ('Daario', 'Naharis', 8, 4); 
+    ('Jorah', 'Mormont', 8, 8), 
+    ('Daario', 'Naharis', 8, 8); 
