@@ -7,7 +7,7 @@ roles, and employees. You may even update an employee's role.
 
 The app uses MySQL for its relational database.
 
-Here is a video tutorial: [Tutorial](https://watch.screencastify.com/v/cXTe5tQg52vDQX7ztdTT)
+Check out a walkthrough: [Video Link](https://watch.screencastify.com/v/cXTe5tQg52vDQX7ztdTT)
 
 ## Table of Contents
 
