@@ -191,7 +191,9 @@ function addRole() {
 
 function addEmployee() {
     let roles = []
-    let managers = ['None']
+    let roleIds = []
+    let managers = []
+    let managerIds = []
     // getManagers()
     // console.log(managers)
     // const query = 'SELECT title FROM roles';
@@ -199,20 +201,34 @@ function addEmployee() {
     //     .then((results) => {
     //         results[0].forEach((role) => roles.push(role.title));
     //     })
-    const query = `select roles.title, concat(employees.first_name, ' ', employees.last_name) as Managers
+    const query = `select distinct employees.id as mid, concat(employees.first_name, ' ', employees.last_name) as Managers, roles.title, roles.id as rid 
         from employees right join roles on employees.role_id = roles.id 
-        where employees.manager_id is null`;
+        where employees.manager_id is null or roles.title is not null`;
     db.promise().query(query)
         .then((results) => {
-            // console.log(results[0])
+            console.log(results[0])
             results[0].forEach((role) => {
                 if (role.title !== null) {
+                    let roleObj = {}
+                    roleObj.title = role.title
+                    roleObj.id = role.rid
+                    roleIds.push(roleObj)
+
                     roles.push(role.title);
                 }
                 if (role.Managers !== null) {
-                    managers.push(role.Managers);
+                    let manObj = {}
+                    manObj.name = role.Managers
+                    manObj.id = role.mid
+                    managerIds.push(manObj);
+
+                    managers.push(role.Managers)
                 }
             })
+            console.log(roles)
+            console.log(roleIds)
+            console.log(managers)
+            console.log(managerIds)
             inquirer
                 .prompt([
                     {
@@ -235,17 +251,22 @@ function addEmployee() {
                         type: 'list',
                         name: 'manager',
                         message: "Who is the employee's manager?",
-                        choices: managers
+                        choices: ['None', ...managers]
                     }
                 ])
                 .then((answer) => {
                     const { firstname, lastname } = answer;
-                    const roleId = roles.indexOf(answer.role) + 1;
+
+                    let empRole = roleIds.find(r => r.title === answer.role);
+                    let empMan = managerIds.find(m => m.name === answer.manager);
+
+                    let roleId = empRole.id
                     let managerId;
+
                     if (answer.manager === 'None') {
                         managerId = null;
                     } else {
-                        managerId = managers.indexOf(answer.manager) + 2
+                        managerId = empMan.id;
                     }
                     const query = `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
                         VALUES ('${firstname}', '${lastname}', ${roleId}, ${managerId})`;
@@ -307,6 +328,10 @@ function getManagers() {
     })
     .catch((err) => console.log(err, 'unable to retireve manager list'))
 }
+
+// function getKeyByValue(object, value) {
+//     return Object.keys(object).find(key => object[key] === value);
+// }
 
 function init() {
     console.log('Welcome to your company employee manager.')
