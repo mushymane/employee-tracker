@@ -201,20 +201,22 @@ function addEmployee() {
     //     .then((results) => {
     //         results[0].forEach((role) => roles.push(role.title));
     //     })
-    const query = `select distinct employees.id as mid, concat(employees.first_name, ' ', employees.last_name) as Managers, roles.title, roles.id as rid 
+    const query = `select employees.id as mid, concat(employees.first_name, ' ', employees.last_name) as Managers, roles.title, roles.id as rid 
         from employees right join roles on employees.role_id = roles.id 
         where employees.manager_id is null or roles.title is not null`;
     db.promise().query(query)
         .then((results) => {
             console.log(results[0])
             results[0].forEach((role) => {
-                if (role.title !== null) {
+                if (role.title !== null ) {
                     let roleObj = {}
                     roleObj.title = role.title
                     roleObj.id = role.rid
                     roleIds.push(roleObj)
 
-                    roles.push(role.title);
+                    if(!roles.includes(role.title)) {
+                        roles.push(role.title);
+                    }
                 }
                 if (role.Managers !== null) {
                     let manObj = {}
