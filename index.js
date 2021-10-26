@@ -83,10 +83,10 @@ function viewDepartments() { //async?
         })
 }
 
-// change department_id to actual department name
 function viewRoles() {
     console.log('viewing roles')
-    const query = 'SELECT * FROM roles';
+    const query = `SELECT roles.id, roles.title, roles.salary, departments.name as department 
+        FROM roles right join departments on roles.department_id = departments.id`;
     db.promise().query(query)
         .then((results) => {
             console.table(results[0])
@@ -97,7 +97,6 @@ function viewRoles() {
         })
 }
 
-// *******need to figure out manager thing
 function viewEmployees() {
     console.log('viewing employees')
     const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.name, roles.salary, 
@@ -181,12 +180,6 @@ function addRole() {
                 })
             }
         )
-        // .catch((err) => console.log(err))
-        // })
-        // .catch('error getting the rows')
-        // .then(() => {
-        //     menu();
-        // })
 }
 
 function addEmployee() {
@@ -194,16 +187,11 @@ function addEmployee() {
     let roleIds = []
     let managers = []
     let managerIds = []
-    // getManagers()
-    // console.log(managers)
-    // const query = 'SELECT title FROM roles';
-    // db.promise().query(query)
-    //     .then((results) => {
-    //         results[0].forEach((role) => roles.push(role.title));
-    //     })
+
     const query = `select employees.id as mid, concat(employees.first_name, ' ', employees.last_name) as Managers, roles.title, roles.id as rid 
         from employees right join roles on employees.role_id = roles.id 
         where employees.manager_id is null or roles.title is not null`;
+
     db.promise().query(query)
         .then((results) => {
             console.log(results[0])
@@ -227,10 +215,10 @@ function addEmployee() {
                     managers.push(role.Managers)
                 }
             })
-            console.log(roles)
-            console.log(roleIds)
-            console.log(managers)
-            console.log(managerIds)
+            // console.log(roles)
+            // console.log(roleIds)
+            // console.log(managers)
+            // console.log(managerIds)
             inquirer
                 .prompt([
                     {
@@ -282,58 +270,78 @@ function addEmployee() {
                     })
                 })
             })
-            // console.log(roles)
-            // console.log(managers)
-    
 }
-
-// inquirer
-//     .prompt([
-//         {
-//             type: 'input',
-//             name: 'firstname',
-//             message: "What is the employee's first name?"
-//         },
-//         {
-//             type: 'input',
-//             name: 'lastname',
-//             message: "What is the employee's last name?"
-//         },
-//         {
-//             type: 'list',
-//             name: 'role',
-//             message: "What is the employee's role?",
-//             choices: roles
-//         },
-//         {
-//             type: 'list',
-//             name: 'manager',
-//             message: "Who is the employee's manager?",
-//             choices: ['None',]
-//         }
-//     ])
 
 function updateEmployee() {
-    console.log('updating employees')
-    menu()
-}
+    let employees = []
+    let employeeIds = []
+    let roles = []
+    let roleIds = []
 
-function getManagers() {
-    let managers = ['None']
-    const query = `SELECT CONCAT(employees.first_name, ' ', employees.last_name) AS Manager 
-        FROM employees WHERE manager_id IS NULL`;
+    const query = `SELECT employees.id as eid, 
+    CONCAT(first_name, ' ', last_name) as name, roles.title as role, roles.id as rid 
+    FROM employees RIGHT JOIN roles ON employees.role_id = roles.id`;
+
     db.promise().query(query)
-    .then((results) => {
-        results[0].forEach((manager) => managers.push(manager.Manager));
-        console.log(managers)
-        return managers;
-    })
-    .catch((err) => console.log(err, 'unable to retireve manager list'))
-}
+        .then((results) => {
+            results[0].forEach((employee) => {
+                if (employee.eid !== null ) {
+                    let empObj = {}
+                    empObj.name = employee.name
+                    empObj.id = employee.eid
+                    employeeIds.push(empObj)
 
-// function getKeyByValue(object, value) {
-//     return Object.keys(object).find(key => object[key] === value);
-// }
+                    if(!employees.includes(employee.eid)) {
+                        employees.push(employee.name);
+                    }
+                }
+                if (employee.rid !== null) {
+                    let roleObj = {}
+                    roleObj.title = employee.role
+                    roleObj.id = employee.rid
+                    roleIds.push(roleObj);
+
+                    if (!roles.includes(employee.role)) {
+                        roles.push(employee.role)
+                    }
+                }
+            })
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: 'name',
+                        message: "Which employee's role would you like to update?",
+                        choices: employees
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: "Which role would you like to assign the new employee?",
+                        choices: roles
+                    }
+                ])
+                .then((answer) => {
+                    const { name, role } = answer;
+                    let empObj = employeeIds.find(e => e.name === name);
+                    let roleObj = roleIds.find(r => r.title === role);
+                    // let empId = empObj.id;
+                    // let roleId = roleObj.id;
+
+                    const query = `UPDATE employees SET role_id = ${roleObj.id} 
+                    WHERE id = ${empObj.id}`;
+                    db.promise().query(query)
+                        .then((results) => {
+                        console.log(`successfully updated role for ${empObj.name}`)
+                    })
+                    .catch((err) => console.log(err))
+                    .then(() => {
+                        menu();
+                    })
+                })
+            }
+        )
+}
 
 function init() {
     console.log('Welcome to your company employee manager.')
