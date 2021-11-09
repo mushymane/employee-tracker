@@ -1,4 +1,5 @@
 # Employee Management System
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Description 
 
@@ -54,6 +55,9 @@ SELECT employees.id as eid,
 CONCAT(first_name, ' ', last_name) as name, roles.title as role, roles.id as rid 
 FROM employees RIGHT JOIN roles ON employees.role_id = roles.id
 ```
+## License
+
+This application is covered under the MIT license.
 
 ## Questions
 
